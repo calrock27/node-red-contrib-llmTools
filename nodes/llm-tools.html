@@ -1,0 +1,402 @@
+<script type="text/javascript">
+    RED.nodes.registerType('llm-tools', {
+        category: 'function',
+        color: '#68B7E0',
+        defaults: {
+            name: { value: "" },
+            tools: { value: "[]" }
+        },
+        inputs: 1,
+        outputs: 3,
+        outputLabels: ["success", "error", "approval required"],
+        icon: "font-awesome/fa-wrench",
+        label: function() {
+            return this.name || "llm-tools";
+        },
+        oneditprepare: function() {
+            const node = this;
+
+            // Parse existing tools
+            node._tools = [];
+            try {
+                node._tools = JSON.parse(node.tools || '[]');
+            } catch (e) {
+                node._tools = [];
+            }
+
+            // Initialize the tools list
+            const toolsList = $('#node-input-tools-container');
+            toolsList.css('min-height', '150px').css('max-height', '400px').css('overflow-y', 'auto');
+
+            function renderToolsList() {
+                toolsList.empty();
+
+                if (node._tools.length === 0) {
+                    toolsList.append(
+                        '<div style="padding: 10px; text-align: center; color: #999;">' +
+                        'No tools defined. Click "Add Tool" to create one.' +
+                        '</div>'
+                    );
+                    return;
+                }
+
+                node._tools.forEach((tool, index) => {
+                    const row = $('<div/>', {
+                        class: 'tool-row',
+                        style: 'padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 3px; background: #f9f9f9;'
+                    });
+
+                    const toolInfo = $('<div/>', { style: 'display: inline-block; width: 70%;' });
+                    toolInfo.append($('<strong/>').text(tool.name || 'Unnamed Tool'));
+                    toolInfo.append($('<br/>'));
+                    toolInfo.append($('<span/>', { style: 'color: #666; font-size: 0.9em;' }).text(
+                        (tool.description || 'No description').substring(0, 60) + '...'
+                    ));
+
+                    const toolButtons = $('<div/>', { style: 'display: inline-block; width: 28%; text-align: right;' });
+
+                    const editBtn = $('<button/>', {
+                        type: 'button',
+                        class: 'red-ui-button red-ui-button-small',
+                        style: 'margin-left: 5px;'
+                    }).text('Edit').on('click', function() {
+                        openToolEditor(index);
+                    });
+
+                    const deleteBtn = $('<button/>', {
+                        type: 'button',
+                        class: 'red-ui-button red-ui-button-small',
+                        style: 'margin-left: 5px;'
+                    }).text('Delete').on('click', function() {
+                        if (confirm(`Delete tool "${tool.name}"?`)) {
+                            node._tools.splice(index, 1);
+                            renderToolsList();
+                        }
+                    });
+
+                    toolButtons.append(editBtn).append(deleteBtn);
+                    row.append(toolInfo).append(toolButtons);
+                    toolsList.append(row);
+                });
+            }
+
+            function openToolEditor(index) {
+                const isNew = index === -1;
+                const tool = isNew ? {
+                    name: '',
+                    description: '',
+                    command: '',
+                    executionMode: 'local',
+                    requireApproval: false,
+                    timeout: 30000,
+                    parameters: {
+                        type: 'object',
+                        properties: {},
+                        required: []
+                    }
+                } : { ...node._tools[index] };
+
+                const dialog = $('<div id="tool-editor-dialog">').appendTo('body');
+
+                const form = $('<div class="form-horizontal">');
+
+                // Tool Name
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-name"><i class="fa fa-tag"></i> Name</label>' +
+                    '<input type="text" id="tool-name" placeholder="check_disk_space" style="width: 70%;">' +
+                    '</div>'
+                );
+
+                // Tool Description
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-description"><i class="fa fa-info"></i> Description</label>' +
+                    '<input type="text" id="tool-description" placeholder="Check available disk space" style="width: 70%;">' +
+                    '</div>'
+                );
+
+                // Command
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-command"><i class="fa fa-terminal"></i> Command</label>' +
+                    '<textarea id="tool-command" rows="3" placeholder="df -h {{params.path}}" style="width: 70%;"></textarea>' +
+                    '<div style="margin-left: 110px; font-size: 0.9em; color: #666;">Use {{params.paramName}} or {{msg.property}} for substitution</div>' +
+                    '</div>'
+                );
+
+                // Execution Mode
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-executionMode"><i class="fa fa-cog"></i> Execution</label>' +
+                    '<select id="tool-executionMode" style="width: 70%;">' +
+                    '<option value="local">Local</option>' +
+                    '<option value="remote">Remote (SSH)</option>' +
+                    '</select>' +
+                    '</div>'
+                );
+
+                // Server (for remote execution)
+                form.append(
+                    '<div class="form-row" id="tool-server-row" style="display: none;">' +
+                    '<label for="tool-server"><i class="fa fa-server"></i> SSH Server</label>' +
+                    '<input type="text" id="tool-server" style="width: 70%;">' +
+                    '</div>'
+                );
+
+                // Require Approval
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-requireApproval"><i class="fa fa-lock"></i> Approval</label>' +
+                    '<input type="checkbox" id="tool-requireApproval" style="width: auto; margin-left: 0;">' +
+                    '<label for="tool-requireApproval" style="width: auto; margin-left: 5px;">Require approval before execution</label>' +
+                    '</div>'
+                );
+
+                // Timeout
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-timeout"><i class="fa fa-clock-o"></i> Timeout</label>' +
+                    '<input type="number" id="tool-timeout" placeholder="30000" style="width: 70%;"> ms' +
+                    '</div>'
+                );
+
+                // Parameters Schema
+                form.append(
+                    '<div class="form-row">' +
+                    '<label for="tool-parameters"><i class="fa fa-list"></i> Parameters</label>' +
+                    '<textarea id="tool-parameters" rows="6" placeholder=\'{"type": "object", "properties": {}, "required": []}\' style="width: 70%; font-family: monospace;"></textarea>' +
+                    '<div style="margin-left: 110px; font-size: 0.9em; color: #666;">JSON Schema for tool parameters</div>' +
+                    '</div>'
+                );
+
+                dialog.append(form);
+
+                // Populate form
+                $('#tool-name').val(tool.name);
+                $('#tool-description').val(tool.description);
+                $('#tool-command').val(tool.command);
+                $('#tool-executionMode').val(tool.executionMode || 'local');
+                $('#tool-server').val(tool.server || '');
+                $('#tool-requireApproval').prop('checked', tool.requireApproval || false);
+                $('#tool-timeout').val(tool.timeout || 30000);
+                $('#tool-parameters').val(JSON.stringify(tool.parameters || {
+                    type: 'object',
+                    properties: {},
+                    required: []
+                }, null, 2));
+
+                // Show/hide server field based on execution mode
+                $('#tool-executionMode').on('change', function() {
+                    if ($(this).val() === 'remote') {
+                        $('#tool-server-row').show();
+                        $('#tool-server').typedInput({
+                            type: 'llm-tools-server',
+                            types: ['llm-tools-server']
+                        });
+                    } else {
+                        $('#tool-server-row').hide();
+                    }
+                }).trigger('change');
+
+                dialog.dialog({
+                    modal: true,
+                    title: isNew ? 'Add Tool' : 'Edit Tool',
+                    width: 700,
+                    buttons: [
+                        {
+                            text: "Cancel",
+                            click: function() {
+                                $(this).dialog("close");
+                            }
+                        },
+                        {
+                            text: isNew ? "Add" : "Save",
+                            class: "primary",
+                            click: function() {
+                                // Validate and save
+                                const name = $('#tool-name').val().trim();
+                                const description = $('#tool-description').val().trim();
+                                const command = $('#tool-command').val().trim();
+                                const executionMode = $('#tool-executionMode').val();
+                                const server = $('#tool-server').val();
+                                const requireApproval = $('#tool-requireApproval').is(':checked');
+                                const timeout = parseInt($('#tool-timeout').val()) || 30000;
+
+                                if (!name) {
+                                    alert('Tool name is required');
+                                    return;
+                                }
+
+                                if (!description) {
+                                    alert('Tool description is required');
+                                    return;
+                                }
+
+                                if (!command) {
+                                    alert('Command is required');
+                                    return;
+                                }
+
+                                let parameters;
+                                try {
+                                    parameters = JSON.parse($('#tool-parameters').val());
+                                } catch (e) {
+                                    alert('Invalid JSON in parameters schema: ' + e.message);
+                                    return;
+                                }
+
+                                const toolData = {
+                                    name,
+                                    description,
+                                    command,
+                                    executionMode,
+                                    server: executionMode === 'remote' ? server : null,
+                                    requireApproval,
+                                    timeout,
+                                    parameters
+                                };
+
+                                if (isNew) {
+                                    node._tools.push(toolData);
+                                } else {
+                                    node._tools[index] = toolData;
+                                }
+
+                                renderToolsList();
+                                $(this).dialog("close");
+                            }
+                        }
+                    ],
+                    close: function() {
+                        dialog.remove();
+                    }
+                });
+            }
+
+            // Add Tool button
+            $('#node-input-add-tool').on('click', function() {
+                openToolEditor(-1);
+            });
+
+            // Initial render
+            renderToolsList();
+        },
+        oneditsave: function() {
+            this.tools = JSON.stringify(this._tools || []);
+            delete this._tools;
+        },
+        oneditcancel: function() {
+            delete this._tools;
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="llm-tools">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="LLM Tools">
+    </div>
+
+    <div class="form-row">
+        <label style="width: 100%;"><i class="fa fa-wrench"></i> Tools</label>
+        <div id="node-input-tools-container" style="margin-left: 10px;"></div>
+    </div>
+
+    <div class="form-row" style="margin-left: 10px;">
+        <button type="button" id="node-input-add-tool" class="red-ui-button">
+            <i class="fa fa-plus"></i> Add Tool
+        </button>
+    </div>
+
+    <!-- Hidden field to store tools JSON -->
+    <input type="hidden" id="node-input-tools">
+</script>
+
+<script type="text/html" data-help-name="llm-tools">
+    <p>Provides LLM tool management with shell command execution capabilities.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload.action <span class="property-type">string</span></dt>
+        <dd>Action to perform: <code>list_tools</code>, <code>execute_tool</code>, or <code>approve_tool</code></dd>
+
+        <dt>payload.tool_name <span class="property-type">string</span></dt>
+        <dd>Name of tool to execute (required for <code>execute_tool</code>)</dd>
+
+        <dt>payload.parameters <span class="property-type">object</span></dt>
+        <dd>Parameters for tool execution (optional)</dd>
+
+        <dt>payload.approval_id <span class="property-type">string</span></dt>
+        <dd>Approval ID for <code>approve_tool</code> action</dd>
+
+        <dt>payload.approved <span class="property-type">boolean</span></dt>
+        <dd>Approval decision (true/false) for <code>approve_tool</code> action</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <ol class="node-ports">
+        <li>Success
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">object</span></dt>
+                <dd>Tool execution result with stdout, stderr, and exitCode</dd>
+            </dl>
+        </li>
+        <li>Error
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">object</span></dt>
+                <dd>Error information or non-zero exit code results</dd>
+            </dl>
+        </li>
+        <li>Approval Required
+            <dl class="message-properties">
+                <dt>payload <span class="property-type">object</span></dt>
+                <dd>Approval request with approval_id, tool_name, and command preview</dd>
+            </dl>
+        </li>
+    </ol>
+
+    <h3>Details</h3>
+    <p>This node manages LLM tools with shell command execution. It supports:</p>
+    <ul>
+        <li><strong>Tool Discovery:</strong> Send <code>list_tools</code> action to get available tools</li>
+        <li><strong>Command Execution:</strong> Execute shell commands locally or via SSH</li>
+        <li><strong>Approval Workflow:</strong> Optional approval for sensitive operations</li>
+        <li><strong>Template Support:</strong> Use Mustache templates in commands</li>
+    </ul>
+
+    <h4>Actions</h4>
+    <dl>
+        <dt>list_tools</dt>
+        <dd>Returns JSON schema of all configured tools</dd>
+
+        <dt>execute_tool</dt>
+        <dd>Executes specified tool with parameters</dd>
+
+        <dt>approve_tool</dt>
+        <dd>Approves or rejects a pending tool execution</dd>
+    </dl>
+
+    <h4>Template Syntax</h4>
+    <p>Commands support Mustache templates:</p>
+    <ul>
+        <li><code>{{params.paramName}}</code> - Access tool parameters</li>
+        <li><code>{{msg.property}}</code> - Access message properties</li>
+    </ul>
+
+    <h4>Example Flow</h4>
+    <pre>
+LLM Request → llm-tools (list_tools) → LLM Response
+LLM Request → llm-tools (execute_tool) → Success/Error
+    </pre>
+
+    <h3>Security</h3>
+    <p><strong>Warning:</strong> Be cautious when exposing shell command execution to LLMs.
+    Use the approval workflow for sensitive operations and validate all inputs.</p>
+</script>
+
+<style>
+    .tool-row:hover {
+        background: #f0f0f0 !important;
+    }
+</style>

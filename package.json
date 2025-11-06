@@ -1,0 +1,38 @@
+{
+  "name": "node-red-contrib-llmtools",
+  "version": "0.1.0",
+  "description": "Node-RED nodes for managing LLM tools with shell command execution",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node-red",
+    "llm",
+    "tools",
+    "ai",
+    "shell",
+    "ssh",
+    "remote-execution"
+  ],
+  "author": "calrock27",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calrock27/node-red-contrib-llmTools.git"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "llm-tools-server": "nodes/llm-tools-server.js",
+      "llm-tools": "nodes/llm-tools.js"
+    }
+  },
+  "dependencies": {
+    "mustache": "^4.2.0",
+    "ssh2": "^1.15.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

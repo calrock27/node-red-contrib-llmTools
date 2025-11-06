@@ -1,0 +1,194 @@
+[
+    {
+        "id": "example-flow-3",
+        "type": "tab",
+        "label": "Approval Workflow",
+        "disabled": false,
+        "info": "This example demonstrates the approval workflow for sensitive operations."
+    },
+    {
+        "id": "inject-execute-sensitive",
+        "type": "inject",
+        "z": "example-flow-3",
+        "name": "Execute: Sensitive Command",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"action\":\"execute_tool\",\"tool_name\":\"delete_temp\",\"parameters\":{\"path\":\"/tmp/test\"}}",
+        "payloadType": "json",
+        "x": 170,
+        "y": 100,
+        "wires": [
+            ["llm-tools-node-3"]
+        ]
+    },
+    {
+        "id": "llm-tools-node-3",
+        "type": "llm-tools",
+        "z": "example-flow-3",
+        "name": "LLM Tools",
+        "tools": "[{\"name\":\"delete_temp\",\"description\":\"Delete files from temp directory\",\"command\":\"rm -rf {{params.path}}\",\"executionMode\":\"local\",\"requireApproval\":true,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"description\":\"Path to delete\"}},\"required\":[\"path\"]}}]",
+        "x": 390,
+        "y": 140,
+        "wires": [
+            ["debug-success-3"],
+            ["debug-error-3"],
+            ["approval-handler"]
+        ]
+    },
+    {
+        "id": "approval-handler",
+        "type": "function",
+        "z": "example-flow-3",
+        "name": "Approval Handler",
+        "func": "// Display approval request\nnode.warn(\"Approval Required:\");\nnode.warn(\"Tool: \" + msg.payload.tool_name);\nnode.warn(\"Command: \" + msg.payload.command_preview);\nnode.warn(\"Approval ID: \" + msg.payload.approval_id);\n\n// Store approval_id for later use\nflow.set('pending_approval_id', msg.payload.approval_id);\n\n// Pass through for user decision\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 180,
+        "wires": [
+            ["debug-approval"]
+        ]
+    },
+    {
+        "id": "debug-approval",
+        "type": "debug",
+        "z": "example-flow-3",
+        "name": "Approval Required",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 820,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "inject-approve",
+        "type": "inject",
+        "z": "example-flow-3",
+        "name": "Approve",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 240,
+        "wires": [
+            ["build-approval"]
+        ]
+    },
+    {
+        "id": "inject-reject",
+        "type": "inject",
+        "z": "example-flow-3",
+        "name": "Reject",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 280,
+        "wires": [
+            ["build-rejection"]
+        ]
+    },
+    {
+        "id": "build-approval",
+        "type": "function",
+        "z": "example-flow-3",
+        "name": "Build Approval Message",
+        "func": "msg.payload = {\n    action: 'approve_tool',\n    approval_id: flow.get('pending_approval_id'),\n    approved: true\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 240,
+        "wires": [
+            ["llm-tools-node-3"]
+        ]
+    },
+    {
+        "id": "build-rejection",
+        "type": "function",
+        "z": "example-flow-3",
+        "name": "Build Rejection Message",
+        "func": "msg.payload = {\n    action: 'approve_tool',\n    approval_id: flow.get('pending_approval_id'),\n    approved: false\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 280,
+        "wires": [
+            ["llm-tools-node-3"]
+        ]
+    },
+    {
+        "id": "debug-success-3",
+        "type": "debug",
+        "z": "example-flow-3",
+        "name": "Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "debug-error-3",
+        "type": "debug",
+        "z": "example-flow-3",
+        "name": "Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 140,
+        "wires": []
+    }
+]

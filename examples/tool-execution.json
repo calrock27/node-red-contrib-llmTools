@@ -1,0 +1,103 @@
+[
+    {
+        "id": "example-flow-2",
+        "type": "tab",
+        "label": "Tool Execution",
+        "disabled": false,
+        "info": "This example demonstrates how to execute a tool with parameters."
+    },
+    {
+        "id": "inject-execute-disk",
+        "type": "inject",
+        "z": "example-flow-2",
+        "name": "Execute: Check Disk",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"action\":\"execute_tool\",\"tool_name\":\"check_disk\",\"parameters\":{}}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 100,
+        "wires": [
+            ["llm-tools-node-2"]
+        ]
+    },
+    {
+        "id": "inject-execute-list",
+        "type": "inject",
+        "z": "example-flow-2",
+        "name": "Execute: List Files",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"action\":\"execute_tool\",\"tool_name\":\"list_files\",\"parameters\":{\"path\":\"/tmp\"}}",
+        "payloadType": "json",
+        "x": 160,
+        "y": 140,
+        "wires": [
+            ["llm-tools-node-2"]
+        ]
+    },
+    {
+        "id": "llm-tools-node-2",
+        "type": "llm-tools",
+        "z": "example-flow-2",
+        "name": "LLM Tools",
+        "tools": "[{\"name\":\"check_disk\",\"description\":\"Check disk space usage\",\"command\":\"df -h\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"list_files\",\"description\":\"List files in a directory\",\"command\":\"ls -la {{params.path}}\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"description\":\"Directory path to list\"}},\"required\":[\"path\"]}}]",
+        "x": 370,
+        "y": 120,
+        "wires": [
+            ["debug-success-2"],
+            ["debug-error-2"],
+            []
+        ]
+    },
+    {
+        "id": "debug-success-2",
+        "type": "debug",
+        "z": "example-flow-2",
+        "name": "Success Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "debug-error-2",
+        "type": "debug",
+        "z": "example-flow-2",
+        "name": "Error Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 140,
+        "wires": []
+    }
+]

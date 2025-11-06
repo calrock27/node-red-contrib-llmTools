@@ -1,0 +1,80 @@
+[
+    {
+        "id": "example-flow-1",
+        "type": "tab",
+        "label": "Basic Tool Listing",
+        "disabled": false,
+        "info": "This example demonstrates how to request the list of available tools from the LLM Tools node."
+    },
+    {
+        "id": "inject-list-tools",
+        "type": "inject",
+        "z": "example-flow-1",
+        "name": "Request Tools List",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"action\":\"list_tools\"}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            ["llm-tools-node"]
+        ]
+    },
+    {
+        "id": "llm-tools-node",
+        "type": "llm-tools",
+        "z": "example-flow-1",
+        "name": "LLM Tools",
+        "tools": "[{\"name\":\"check_disk\",\"description\":\"Check disk space usage\",\"command\":\"df -h\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"list_files\",\"description\":\"List files in a directory\",\"command\":\"ls -la {{params.path}}\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"description\":\"Directory path to list\"}},\"required\":[\"path\"]}}]",
+        "x": 350,
+        "y": 100,
+        "wires": [
+            ["debug-success"],
+            ["debug-error"],
+            []
+        ]
+    },
+    {
+        "id": "debug-success",
+        "type": "debug",
+        "z": "example-flow-1",
+        "name": "Tools List",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "debug-error",
+        "type": "debug",
+        "z": "example-flow-1",
+        "name": "Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 120,
+        "wires": []
+    }
+]

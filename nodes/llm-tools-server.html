@@ -1,0 +1,116 @@
+<script type="text/javascript">
+    RED.nodes.registerType('llm-tools-server', {
+        category: 'config',
+        defaults: {
+            name: { value: "" },
+            hostname: { value: "", required: true },
+            port: { value: 22, required: true, validate: RED.validators.number() },
+            username: { value: "", required: true },
+            authType: { value: "password" }
+        },
+        credentials: {
+            password: { type: "password" },
+            privateKey: { type: "password" },
+            passphrase: { type: "password" }
+        },
+        label: function() {
+            return this.name || this.username + "@" + this.hostname;
+        },
+        oneditprepare: function() {
+            const node = this;
+
+            // Show/hide auth fields based on auth type
+            $("#node-config-input-authType").on("change", function() {
+                const authType = $(this).val();
+                if (authType === "password") {
+                    $(".form-row-password").show();
+                    $(".form-row-privatekey").hide();
+                    $(".form-row-passphrase").hide();
+                } else if (authType === "privatekey") {
+                    $(".form-row-password").hide();
+                    $(".form-row-privatekey").show();
+                    $(".form-row-passphrase").show();
+                }
+            }).trigger("change");
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="llm-tools-server">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="SSH Server Name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-hostname"><i class="fa fa-server"></i> Hostname</label>
+        <input type="text" id="node-config-input-hostname" placeholder="example.com or 192.168.1.100">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-plug"></i> Port</label>
+        <input type="number" id="node-config-input-port" placeholder="22">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-config-input-username" placeholder="root">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-authType"><i class="fa fa-key"></i> Auth Type</label>
+        <select id="node-config-input-authType">
+            <option value="password">Password</option>
+            <option value="privatekey">Private Key</option>
+        </select>
+    </div>
+
+    <div class="form-row form-row-password">
+        <label for="node-config-input-password"><i class="fa fa-lock"></i> Password</label>
+        <input type="password" id="node-config-input-password">
+    </div>
+
+    <div class="form-row form-row-privatekey">
+        <label for="node-config-input-privateKey"><i class="fa fa-file-text"></i> Private Key</label>
+        <textarea id="node-config-input-privateKey" rows="8" placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
+    </div>
+
+    <div class="form-row form-row-passphrase">
+        <label for="node-config-input-passphrase"><i class="fa fa-lock"></i> Passphrase</label>
+        <input type="password" id="node-config-input-passphrase" placeholder="Leave blank if no passphrase">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="llm-tools-server">
+    <p>Configuration node for SSH server connection used by LLM Tools nodes.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Hostname <span class="property-type">string</span></dt>
+        <dd>The hostname or IP address of the SSH server</dd>
+
+        <dt>Port <span class="property-type">number</span></dt>
+        <dd>SSH port (default: 22)</dd>
+
+        <dt>Username <span class="property-type">string</span></dt>
+        <dd>SSH username for authentication</dd>
+
+        <dt>Auth Type <span class="property-type">password | privatekey</span></dt>
+        <dd>Authentication method</dd>
+
+        <dt>Password <span class="property-type">password</span></dt>
+        <dd>Password for authentication (when using password auth)</dd>
+
+        <dt>Private Key <span class="property-type">password</span></dt>
+        <dd>SSH private key content (when using key auth)</dd>
+
+        <dt>Passphrase <span class="property-type">password</span></dt>
+        <dd>Passphrase for encrypted private key (optional)</dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>This configuration node stores SSH connection credentials securely.
+    Multiple LLM Tools nodes can reference the same server configuration.</p>
+
+    <p><strong>Security Note:</strong> All credentials are encrypted by Node-RED and stored securely.</p>
+</script>
