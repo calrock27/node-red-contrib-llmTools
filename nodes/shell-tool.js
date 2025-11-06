@@ -4,7 +4,7 @@ const shellExecutor = require('../utils/shell-executor');
 const toolValidator = require('../utils/tool-validator');
 
 module.exports = function(RED) {
-    function LLMToolsNode(config) {
+    function ShellToolNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
@@ -350,5 +350,5 @@ module.exports = function(RED) {
         });
     }
 
-    RED.nodes.registerType("llm-tools", LLMToolsNode);
+    RED.nodes.registerType("shell-tool", ShellToolNode);
 };

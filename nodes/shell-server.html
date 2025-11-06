@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('llm-tools-server', {
+    RED.nodes.registerType('shell-server', {
         category: 'config',
         defaults: {
             name: { value: "" },
@@ -36,7 +36,7 @@
     });
 </script>
 
-<script type="text/html" data-template-name="llm-tools-server">
+<script type="text/html" data-template-name="shell-server">
     <div class="form-row">
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="SSH Server Name">
@@ -81,8 +81,8 @@
     </div>
 </script>
 
-<script type="text/html" data-help-name="llm-tools-server">
-    <p>Configuration node for SSH server connection used by LLM Tools nodes.</p>
+<script type="text/html" data-help-name="shell-server">
+    <p>Configuration node for SSH server connection used by Shell Tool nodes.</p>
 
     <h3>Configuration</h3>
     <dl class="message-properties">
@@ -110,7 +110,7 @@
 
     <h3>Details</h3>
     <p>This configuration node stores SSH connection credentials securely.
-    Multiple LLM Tools nodes can reference the same server configuration.</p>
+    Multiple Shell Tool nodes can reference the same server configuration.</p>
 
     <p><strong>Security Note:</strong> All credentials are encrypted by Node-RED and stored securely.</p>
 </script>

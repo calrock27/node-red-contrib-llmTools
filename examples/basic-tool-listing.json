@@ -31,9 +31,9 @@
     },
     {
         "id": "llm-tools-node",
-        "type": "llm-tools",
+        "type": "shell-tool",
         "z": "example-flow-1",
-        "name": "LLM Tools",
+        "name": "Shell Tool",
         "tools": "[{\"name\":\"check_disk\",\"description\":\"Check disk space usage\",\"command\":\"df -h\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"list_files\",\"description\":\"List files in a directory\",\"command\":\"ls -la {{params.path}}\",\"executionMode\":\"local\",\"requireApproval\":false,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"description\":\"Directory path to list\"}},\"required\":[\"path\"]}}]",
         "x": 350,
         "y": 100,

@@ -31,9 +31,9 @@
     },
     {
         "id": "llm-tools-node-3",
-        "type": "llm-tools",
+        "type": "shell-tool",
         "z": "example-flow-3",
-        "name": "LLM Tools",
+        "name": "Shell Tool",
         "tools": "[{\"name\":\"delete_temp\",\"description\":\"Delete files from temp directory\",\"command\":\"rm -rf {{params.path}}\",\"executionMode\":\"local\",\"requireApproval\":true,\"timeout\":30000,\"parameters\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\",\"description\":\"Path to delete\"}},\"required\":[\"path\"]}}]",
         "x": 390,
         "y": 140,

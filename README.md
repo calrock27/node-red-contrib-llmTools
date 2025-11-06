@@ -29,7 +29,7 @@ After installation, restart Node-RED and the nodes will appear in the palette un
 
 ## Nodes
 
-### LLM Tools Node
+### Shell Tool Node
 
 The main node that manages tools and executes commands.
 
@@ -45,7 +45,7 @@ The main node that manages tools and executes commands.
 2. **Error** - Error messages or non-zero exit codes
 3. **Approval Required** - Approval requests (when tool requires approval)
 
-### LLM Tools Server Config Node
+### Shell Server Config Node
 
 Configuration node for SSH server credentials.
 
@@ -60,7 +60,7 @@ Configuration node for SSH server credentials.
 
 ### 1. Configure Tools
 
-1. Drag the **llm-tools** node onto your flow
+1. Drag the **shell-tool** node onto your flow
 2. Double-click to open the configuration dialog
 3. Click "Add Tool" to create a new tool
 4. Configure the tool:

@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('llm-tools', {
+    RED.nodes.registerType('shell-tool', {
         category: 'function',
         color: '#68B7E0',
         defaults: {
@@ -11,7 +11,7 @@
         outputLabels: ["success", "error", "approval required"],
         icon: "font-awesome/fa-wrench",
         label: function() {
-            return this.name || "llm-tools";
+            return this.name || "shell-tool";
         },
         oneditprepare: function() {
             const node = this;
@@ -191,8 +191,8 @@
                     if ($(this).val() === 'remote') {
                         $('#tool-server-row').show();
                         $('#tool-server').typedInput({
-                            type: 'llm-tools-server',
-                            types: ['llm-tools-server']
+                            type: 'shell-server',
+                            types: ['shell-server']
                         });
                     } else {
                         $('#tool-server-row').hide();
@@ -292,10 +292,10 @@
     });
 </script>
 
-<script type="text/html" data-template-name="llm-tools">
+<script type="text/html" data-template-name="shell-tool">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="LLM Tools">
+        <input type="text" id="node-input-name" placeholder="Shell Tool">
     </div>
 
     <div class="form-row">
@@ -313,7 +313,7 @@
     <input type="hidden" id="node-input-tools">
 </script>
 
-<script type="text/html" data-help-name="llm-tools">
+<script type="text/html" data-help-name="shell-tool">
     <p>Provides LLM tool management with shell command execution capabilities.</p>
 
     <h3>Inputs</h3>
@@ -386,8 +386,8 @@
 
     <h4>Example Flow</h4>
     <pre>
-LLM Request → llm-tools (list_tools) → LLM Response
-LLM Request → llm-tools (execute_tool) → Success/Error
+LLM Request → shell-tool (list_tools) → LLM Response
+LLM Request → shell-tool (execute_tool) → Success/Error
     </pre>
 
     <h3>Security</h3>

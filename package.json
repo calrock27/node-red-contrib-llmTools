@@ -24,8 +24,8 @@
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
-      "llm-tools-server": "nodes/llm-tools-server.js",
-      "llm-tools": "nodes/llm-tools.js"
+      "shell-server": "nodes/shell-server.js",
+      "shell-tool": "nodes/shell-tool.js"
     }
   },
   "dependencies": {

@@ -1,5 +1,5 @@
 module.exports = function(RED) {
-    function LLMToolsServerNode(config) {
+    function ShellServerNode(config) {
         RED.nodes.createNode(this, config);
 
         this.hostname = config.hostname;
@@ -11,7 +11,7 @@ module.exports = function(RED) {
         // and available via this.credentials
     }
 
-    RED.nodes.registerType("llm-tools-server", LLMToolsServerNode, {
+    RED.nodes.registerType("shell-server", ShellServerNode, {
         credentials: {
             password: { type: "password" },
             privateKey: { type: "password" },

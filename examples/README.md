@@ -12,7 +12,7 @@ This directory contains example Node-RED flows demonstrating the use of `node-re
 ## Available Examples
 
 ### 1. basic-tool-listing.json
-Demonstrates how to request the list of available tools from the LLM Tools node.
+Demonstrates how to request the list of available tools from the Shell Tool node.
 
 **What it shows:**
 - Sending a `list_tools` action
