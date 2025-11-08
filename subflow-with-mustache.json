@@ -1,0 +1,239 @@
+[
+    {
+        "id": "0f997947afad6273",
+        "type": "subflow",
+        "name": "Global TTS",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 200,
+                "y": 180,
+                "wires": [
+                    {
+                        "id": "mustache-processor-node"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 800,
+                "y": 180,
+                "wires": [
+                    {
+                        "id": "ba7396582476dd1b",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "Speaker",
+                "type": "str",
+                "value": "",
+                "ui": {
+                    "icon": "font-awesome/fa-music",
+                    "type": "select",
+                    "opts": {
+                        "opts": [
+                            {
+                                "l": {
+                                    "en-US": "Office Speaker"
+                                },
+                                "v": "media_player.office_speaker"
+                            },
+                            {
+                                "l": {
+                                    "en-US": "Kitchen Speaker"
+                                },
+                                "v": "media_player.kitchen_speaker"
+                            },
+                            {
+                                "l": {
+                                    "en-US": "Master Bedroom Display"
+                                },
+                                "v": "media_player.master_bedroom_display"
+                            },
+                            {
+                                "l": {
+                                    "en-US": "All Speakers (home group)"
+                                },
+                                "v": "media_player.home"
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "Message",
+                "type": "str",
+                "value": ""
+            }
+        ],
+        "meta": {},
+        "color": "#3FADB5"
+    },
+    {
+        "id": "mustache-processor-node",
+        "type": "function",
+        "z": "0f997947afad6273",
+        "name": "Process Mustache Templates",
+        "func": "// This node processes mustache templates in subflow environment variables\n// and stores the processed values in message properties for downstream use\n\nconst mustache = require('mustache');\n\n// Get environment variables\nconst speaker = env.get('Speaker') || '';\nconst message = env.get('Message') || '';\n\n// Create context for mustache rendering\n// Include both msg properties and a 'msg' reference for {{msg.property}} syntax\nconst context = {\n    ...msg,\n    msg: msg\n};\n\n// Process templates\ntry {\n    // Disable HTML escaping since we're not rendering HTML\n    mustache.escape = function(text) { return text; };\n    \n    msg.processedSpeaker = mustache.render(speaker, context);\n    msg.processedMessage = mustache.render(message, context);\n    \n    node.status({fill: 'green', shape: 'dot', text: 'Templates processed'});\n    return msg;\n    \n} catch (err) {\n    node.error('Error processing mustache templates: ' + err.message, msg);\n    node.status({fill: 'red', shape: 'ring', text: 'Template error'});\n    return null;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 180,
+        "wires": [
+            [
+                "ba7396582476dd1b"
+            ]
+        ]
+    },
+    {
+        "id": "ba7396582476dd1b",
+        "type": "api-call-service",
+        "z": "0f997947afad6273",
+        "name": "",
+        "server": "9ef53d5b98a7c90c",
+        "version": 7,
+        "debugenabled": false,
+        "action": "tts.speak",
+        "floorId": [],
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "tts.google_ai_tts"
+        ],
+        "labelId": [],
+        "data": "{\t   \"message\":msg.processedMessage,\t   \"cache\":true,\t   \"options\": {\"voice\":\"charon\"},\t   \"media_player_entity_id\":msg.processedSpeaker\t}",
+        "dataType": "jsonata",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "blockInputOverrides": true,
+        "domain": "tts",
+        "service": "speak",
+        "x": 640,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fef6f6bf6e8c0efc",
+        "type": "inject",
+        "z": "0f997947afad6273",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 420,
+        "y": 100,
+        "wires": [
+            [
+                "ba7396582476dd1b"
+            ]
+        ]
+    },
+    {
+        "id": "9ef53d5b98a7c90c",
+        "type": "server",
+        "name": "Home Assistant",
+        "version": 5,
+        "addon": false,
+        "rejectUnauthorizedCerts": false,
+        "ha_boolean": "y|yes|true|on|home|open",
+        "connectionDelay": true,
+        "cacheJson": true,
+        "heartbeat": true,
+        "heartbeatInterval": "30",
+        "areaSelector": "friendlyName",
+        "deviceSelector": "friendlyName",
+        "entitySelector": "friendlyName",
+        "statusSeparator": ": ",
+        "statusYear": "hidden",
+        "statusMonth": "short",
+        "statusDay": "numeric",
+        "statusHourCycle": "default",
+        "statusTimeFormat": "h:m",
+        "enableGlobalContextStore": false
+    },
+    {
+        "id": "75f0c5a2790b62d3",
+        "type": "inject",
+        "z": "18c7ac28ffa3013a",
+        "name": "",
+        "props": [
+            {
+                "p": "balls",
+                "v": "My balls are itchy billy!!",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 470,
+        "y": 600,
+        "wires": [
+            [
+                "0bb2f7caa27f5096"
+            ]
+        ]
+    },
+    {
+        "id": "0bb2f7caa27f5096",
+        "type": "subflow:0f997947afad6273",
+        "z": "18c7ac28ffa3013a",
+        "name": "",
+        "env": [
+            {
+                "name": "Speaker",
+                "value": "media_player.office_speaker",
+                "type": "str"
+            },
+            {
+                "name": "Message",
+                "value": "{{msg.balls}}",
+                "type": "str"
+            }
+        ],
+        "x": 690,
+        "y": 600,
+        "wires": [
+            [
+                "03cbc7f10fcbcbb3"
+            ]
+        ]
+    },
+    {
+        "id": "f9b5cf8df667e9e7",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-home-assistant-websocket": "0.79.4"
+        }
+    }
+]
